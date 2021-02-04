@@ -71,6 +71,10 @@ target/
 
 # data
 local_data
+
+#config
+.idea
+
 # Jupyter Notebook
 .ipynb_checkpoints
 
