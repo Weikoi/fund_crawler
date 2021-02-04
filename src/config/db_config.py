@@ -5,5 +5,5 @@
 
 
 class DBConfig:
-    mysql_url = ""
+    mysql_url = "mysql+pymysql://root:admin@localhost:3306/mysql"
 

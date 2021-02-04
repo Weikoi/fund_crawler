@@ -3,6 +3,16 @@ import pandas as pd
 import re
 import sys
 import math
+import datetime
+import time
+from src.utils.log_tools import get_logger
+from .spider_exception import *
+from src.config.global_config import *
+from src.data.db_pool import DBPool
+from src.config.db_config import DBConfig
+
+logger = get_logger(file_name="spider", logger_name="main")
+pool = DBPool(DBConfig.mysql_url)
 
 
 def progress_bar(portion, total):
@@ -38,27 +48,38 @@ def get_resonse(url):
         return ''
 
 
-def get_company_list(url):
+def get_company_list(url=None):
     """
-    :param url: 公司信息的URL
+    :param url: 基金公司信息的URL
     :return: 将结果存储在当前目录Data/company_list.csv中
     """
+    now_timestamp = datetime.datetime.timestamp(datetime.datetime.now())
+    url = 'http://fund.eastmoney.com/js/jjjz_gs.js?dt={}'.format(now_timestamp)
+    logger.info("开始获取基金公司ID信息...")
     response = get_resonse(url)
+    if response:
+        pass
+    else:
+        logger.info("无法获取基金公司ID信息，URL没有响应...")
+        raise NetworkException("无法获取基金公司ID信息，URL没有响应...")
     code_list = []
     name_list = []
     tmp = re.findall(r"(\".*?\")", response)
+    total_length = len(tmp)
     for i in range(0, len(tmp)):
+        if NEED_SLEEP:
+            time.sleep(SLEEP_TIME_MIN)
+        logger.info("正在获取第 {} / {} 条基金公司ID信息...".format(i + 1, total_length))
         if i % 2 == 0:
-            code_list.append(tmp[i])
+            code_list.append(tmp[i].strip("\""))
         else:
-            name_list.append(tmp[i])
-
-    data = {}
-    data['code'] = code_list
-    data['name'] = name_list
+            name_list.append(tmp[i].strip("\""))
+    data = {'company_id': code_list, 'company_name': name_list}
     df = pd.DataFrame(data)
-    df.to_csv('local_data/company_list.csv')
-
+    pool.insert_by_df("fund_company_info", df)
+    df.to_csv('local_data/company_list.csv', index=False)
+    logger.info("基金公司ID写入DB与CSV完成<<<<<====")
+    logger.info("基金公司ID信息爬取完成<<<<<====")
 
 def get_fund_list(url):
     """

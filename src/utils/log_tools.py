@@ -98,7 +98,7 @@ class LogFactory(object):
             'handlers': {
                 'console': {  # 按理来说, console只收集ERROR级别的较好
                     'class': 'logging.StreamHandler',
-                    'level': 'WARNING',
+                    'level': 'INFO',
                     'formatter': 'dev'
                 },
 

@@ -70,7 +70,7 @@ docs/_build/
 target/
 
 # data
-data
+local_data
 # Jupyter Notebook
 .ipynb_checkpoints
 
