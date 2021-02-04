@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 @Time :2020/12/29
-@Author:huangzengrui@htsc.com
+@Author:huangzengrui@yahoo.com
 @desc: 日志包装类及配置接口
 """
 
