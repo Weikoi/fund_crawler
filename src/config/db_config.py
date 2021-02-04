@@ -5,5 +5,5 @@
 
 
 class DBConfig:
-    Sqlalchemy_url = ""
+    mysql_url = ""
 

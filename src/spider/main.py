@@ -1,17 +1,19 @@
-from Data_solve import *
-from Data_Read import *
-from MyCrawyer import *
+from src.spider.Crawler import *
+import datetime
+
 
 if __name__ == '__main__':
+    # ============>>>>>>>>>每日更新：
     # 获取公司列表
-    url_company = 'http://fund.eastmoney.com/js/jjjz_gs.js?dt=1463791574015'
-    # get_company_list(url_company)
+    now_timestamp = datetime.datetime.timestamp(datetime.datetime.now())
+    url_company = 'http://fund.eastmoney.com/js/jjjz_gs.js?dt={}'.format(now_timestamp)
+    get_company_list(url_company)
 
     # # 获取基金列表
     # url = 'http://fund.eastmoney.com/js/fundcode_search.js'
     # get_fund_list(url)
     # # 基金信息下载与处理
-    get_pingzhong_data()
+    # get_pingzhong_data()
     # # std 和夏普比率信息下载
     # download_f10_ts_data()
     # # 基金经理信息下载
