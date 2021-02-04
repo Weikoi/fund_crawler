@@ -57,7 +57,7 @@ def get_company_list(url):
     data['code'] = code_list
     data['name'] = name_list
     df = pd.DataFrame(data)
-    df.to_csv('data/company_list.csv')
+    df.to_csv('local_data/company_list.csv')
 
 
 def get_fund_list(url):
@@ -90,7 +90,7 @@ def get_fund_list(url):
     data['type'] = type_list
     data['name_en'] = name_en_list
     df = pd.DataFrame(data)
-    df.to_csv('Data/fund_list.csv')
+    df.to_csv('local_data/fund_list.csv')
     return code_list
 
 
@@ -112,7 +112,7 @@ def get_fund_info(code):
 
 
 def get_pingzhong_data():
-    data = pd.read_csv('Data\instruments_ansi.csv', encoding='ANSI')
+    data = pd.read_csv('local_data\instruments_ansi.csv', encoding='ANSI')
     code_list = data['code']
     data = {'fS_name': [],
             'fS_code': [],
@@ -148,13 +148,13 @@ def get_pingzhong_data():
                 else:
                     data[key].append('')
     df = pd.DataFrame(data)
-    df.to_csv('Data/crawler3.csv')
+    df.to_csv('local_data/results.csv')
     df_fail = pd.DataFrame(failed_list)
-    df_fail.to_csv('Data/fail.csv')
+    df_fail.to_csv('local_data/fail.csv')
 
 
 def download_f10_ts_data():
-    data = pd.read_csv('Data\instruments_ansi.csv')
+    data = pd.read_csv('local_data\instruments_ansi.csv')
     code_list = data['code']
     for i in range(0, len(code_list)):
         progress_bar(i, len(code_list))

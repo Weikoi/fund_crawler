@@ -56,7 +56,7 @@ class LogFactory(object):
     # 每个日志文件，使用 2GB
     _SINGLE_FILE_MAX_BYTES = 2 * 1024 * 1024 * 1024
     # 轮转数量是 20 个
-    _BACKUP_COUNT = 60
+    _BACKUP_COUNT = 20
 
     def __init__(self, basename):
         # 基于 dictConfig，做再次封装
@@ -104,9 +104,9 @@ class LogFactory(object):
 
                 'file': {
                     'level': 'INFO',
-                    'class': 'logging.handlers.RotatingFileHandler',
+                    'class': 'logging.handlers.TimedRotatingFileHandler',
+                    'when': 'midnight',
                     'filename': self._get_filename(basename=basename, log_level='info'),
-                    'maxBytes': self._SINGLE_FILE_MAX_BYTES,  # 2GB
                     'encoding': 'UTF-8',
                     'backupCount': self._BACKUP_COUNT,
                     'formatter': 'dev',
@@ -115,9 +115,9 @@ class LogFactory(object):
                 },
                 'file_error': {
                     'level': 'ERROR',
-                    'class': 'logging.handlers.RotatingFileHandler',
+                    'class': 'logging.handlers.TimedRotatingFileHandler',
+                    'when': 'midnight',
                     'filename': self._get_filename(basename=basename, log_level='error'),
-                    'maxBytes': self._SINGLE_FILE_MAX_BYTES,  # 2GB
                     'encoding': 'UTF-8',
                     'backupCount': self._BACKUP_COUNT,
                     'formatter': 'dev',
@@ -125,9 +125,9 @@ class LogFactory(object):
                 },
                 'file_debug': {
                     'level': 'DEBUG',
-                    'class': 'logging.handlers.RotatingFileHandler',
+                    'class': 'logging.handlers.TimedRotatingFileHandler',
+                    'when': 'midnight',
                     'filename': self._get_filename(basename=basename, log_level='debug'),
-                    'maxBytes': self._SINGLE_FILE_MAX_BYTES,  # 2GB
                     'encoding': 'UTF-8',
                     'backupCount': self._BACKUP_COUNT,
                     'formatter': 'dev',
@@ -190,5 +190,6 @@ if __name__ == '__main__':
             a += 1
             time.sleep(2)
             SAMPLE_LOGGER.info("{} demo info".format(a))
+
 
     demofunc()
