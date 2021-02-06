@@ -6,15 +6,15 @@ logger = get_logger(file_name="spider", logger_name="main")
 
 if __name__ == '__main__':
     # ============>>>>>>>>>每日更新：
-    # 获取公司列表
     logger.info("====>>>>>开始执行爬虫...")
-    get_company_list()
+    # 获取公司列表
+    # get_company_list()
 
-    # # 获取基金列表
-    # url = 'http://fund.eastmoney.com/js/fundcode_search.js'
-    # get_fund_list(url)
-    # # 基金信息下载与处理
-    # get_pingzhong_data()
+    # 获取基金列表
+    # get_fund_list()
+
+    # 基金信息下载与处理
+    get_category_data()
     # # std 和夏普比率信息下载
     # download_f10_ts_data()
     # # 基金经理信息下载
@@ -26,4 +26,4 @@ if __name__ == '__main__':
     # # 基金经理信息处理
     # solve_manager_info()
     # # pingzhong data 处理
-    # # solve_crawler3()
+    solve_crawler3()

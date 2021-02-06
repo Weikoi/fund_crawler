@@ -8,4 +8,11 @@ NEED_SLEEP = True
 
 # 睡眠时间
 SLEEP_TIME = 0.5
-SLEEP_TIME_MIN = 0.01
+SLEEP_TIME_MIN = 0.01  # [get_fund_info共耗时2853.12s, 失败178个]
+
+
+retry_request = True
+retry_db = True
+
+retry_request_kwargs = {}
+retry_request_db = {}

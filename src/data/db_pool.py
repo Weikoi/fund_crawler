@@ -232,8 +232,10 @@ class DBPool(object):
             with self.db_engine.connect() as conn:
                 with conn.begin() as trans:
                     total_data_size = len(insert_data)
+                    logger.info("total_size {}".format(total_data_size))
                     for idx in range(0, total_data_size, each_batch_size):
                         try:
+                            logger.info("{}------>{}".format(idx, idx + each_batch_size))
                             conn.execute(sql_base, insert_data[idx: idx + each_batch_size])
                         except Exception as e:
                             # 此处是为了只在出错时日志记录插入的单批次数据，重新抛出异常的目的是为了终止插入操作并回滚
