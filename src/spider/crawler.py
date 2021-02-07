@@ -6,7 +6,7 @@ import math
 import datetime
 import time
 from src.utils.log_tools import get_logger
-from .spider_exception import *
+# from .spider_exception import *
 from src.config.global_config import *
 from src.data.db_pool import DBPool
 from src.config.db_config import DBConfig
@@ -121,7 +121,7 @@ def get_fund_list(url=None):
     print(set(type_list))
     # data['name_en'] = name_en_list
     df = pd.DataFrame(data)
-    df.to_csv('local_data/fund_info.csv')
+    df.to_csv('local_data/fund_list.csv')
     pool.insert_by_df("fund_info", df)
     logger.info("基金基本信息写入DB与CSV完成<<<<<====")
     logger.info("基金基本信息爬取完成<<<<<====")
@@ -186,23 +186,26 @@ def get_category_data():
                 else:
                     data[key].append('')
     df = pd.DataFrame(data)
-    df.to_csv('local_data/results.csv')
+    df.to_csv('local_data/fund_list.csv')
     df_fail = pd.DataFrame(failed_list)
     df_fail.to_csv('local_data/fail.csv')
     logger.info("{}共耗时{:.2f}s, 失败{}个".format("get_fund_info", time.time() - time_s, len(df_fail)))
 
 
 def download_f10_ts_data():
-    data = pd.read_csv('local_data\instruments_ansi.csv')
-    code_list = data['code']
+    data = pd.read_csv('local_data//fund_list.csv')
+    code_list = data['fund_id']
     for i in range(0, len(code_list)):
-        progress_bar(i, len(code_list))
+        if NEED_SLEEP:
+            time.sleep(SLEEP_TIME_MIN)
+        # progress_bar(i, len(code_list))
         name = '%06d' % code_list[i]
+        progress = i / len(code_list) * 100
+        print('\r 爬取' + name + '中，进度', '%.2f' % progress + '% ', end='')
         url = 'http://fund.eastmoney.com/f10/tsdata_' + name + '.html'
         file_name = 'Data/f10_ts/' + name + '.json'
         response = get_response(url)
-        with open(file_name, 'w', encoding='utf-8') as f:
-            print(response, file=f)
+        print(response)
 
 
 def download_manager_info():
@@ -245,6 +248,7 @@ class FundSpider(object):
 
     def get_fund_list(self):
         """
+        每日更新
         这个函数获取每日最新在市基金id
         :return:
         """
@@ -252,6 +256,7 @@ class FundSpider(object):
 
     def get_fund_company_list(self):
         """
+        每日更新
         这个函数获取每日最新基金公司id
         :return:
         """
@@ -264,11 +269,19 @@ class FundSpider(object):
         """
         pass
 
-    # def
+    def get_fund_netval(self, from_init=False):
+        """
+        每日更新
+        这个函数获取基金每日净值数据
+        :param from_init:boolean 是否从最开始更新净值，默认否，即指增量更新最新的净值
+        :return:
+        """
 
 
 if __name__ == '__main__':
     # download_manager_info()
     # solve_f10_data()
     # solve_fund_info()
-    download_risk_info()
+    # download_risk_info()
+    url = 'http://api.fund.eastmoney.com/f10/lsjz?callback=jQuery18303457320724815821_1612713131283&fundCode=006620&pageIndex=2&pageSize=20&startDate=&endDate=&_=1612713159000'
+    print(get_response(url))
