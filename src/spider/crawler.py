@@ -12,7 +12,8 @@ from src.data.db_pool import DBPool
 from src.config.db_config import DBConfig
 
 logger = get_logger(file_name="spider", logger_name="main")
-pool = DBPool(DBConfig.mysql_url)
+if TO_DB:
+    pool = DBPool(DBConfig.mysql_url)
 
 
 def progress_bar(portion, total):
@@ -76,7 +77,8 @@ def get_company_list(url=None):
             name_list.append(tmp[i].strip("\""))
     data = {'company_id': code_list, 'company_name': name_list}
     df = pd.DataFrame(data)
-    pool.insert_by_df("fund_company_info", df)
+    if TO_DB:
+        pool.insert_by_df("fund_company_info", df)
     df.to_csv('local_data/company_list.csv', index=False)
     logger.info("基金公司ID写入DB与CSV完成<<<<<====")
     logger.info("基金公司ID信息爬取完成<<<<<====")
@@ -122,7 +124,8 @@ def get_fund_list(url=None):
     # data['name_en'] = name_en_list
     df = pd.DataFrame(data)
     df.to_csv('local_data/fund_list.csv')
-    pool.insert_by_df("fund_info", df)
+    if TO_DB:
+        pool.insert_by_df("fund_info", df)
     logger.info("基金基本信息写入DB与CSV完成<<<<<====")
     logger.info("基金基本信息爬取完成<<<<<====")
     return code_list
@@ -149,6 +152,32 @@ def get_fund_info(code):
 def get_category_data():
     data = pd.read_csv('local_data//fund_list.csv')
     code_list = data['fund_id']
+    # fS_name ==
+    # fS_code ==
+    # fund_sourceRate ==
+    # fund_Rate ==
+    # fund_minsg ==
+    # stockCodes ==
+    # zqCodes ==
+    # stockCodesNew ==
+    # zqCodesNew ==
+    # syl_1n ==
+    # syl_6y ==
+    # syl_3y ==
+    # syl_1y ==
+    # Data_fundSharesPositions ==
+    # Data_netWorthTrend ==
+    # Data_ACWorthTrend ==
+    # Data_grandTotal ==
+    # Data_rateInSimilarType ==
+    # Data_rateInSimilarPersent ==
+    # Data_fluctuationScale ==
+    # Data_holderStructure ==
+    # Data_assetAllocation ==
+    # Data_performanceEvaluation ==
+    # Data_currentFundManager ==
+    # Data_buySedemption ==
+    # swithSameType ==
     data = {'fS_name': [],
             'fS_code': [],
             'fund_sourceRate': [],
@@ -156,14 +185,26 @@ def get_category_data():
             'fund_minsg': [],
             'stockCodes': [],
             'zqCodes': [],
+            'stockCodesNew':[],
+            'zqCodesNew':[],
             'syl_1n': [],
             'syl_6y': [],
             'syl_3y': [],
             'syl_1y': [],
+            'Data_fundSharesPositions':[],
+            'Data_netWorthTrend': [],
+            'Data_ACWorthTrend': [],
+            'Data_grandTotal': [],
+            'Data_rateInSimilarType': [],
+            'Data_rateInSimilarPersent': [],
+            'Data_fluctuationScale': [],
             'Data_holderStructure': [],
             'Data_assetAllocation': [],
+            'Data_performanceEvaluation': [],
             'Data_currentFundManager': [],
-            'Data_buySedemption': []}
+            'Data_buySedemption': [],
+            'swithSameType': []}
+
     failed_list = []
     time_s = time.time()
     for i in range(0, len(code_list)):
@@ -186,7 +227,7 @@ def get_category_data():
                 else:
                     data[key].append('')
     df = pd.DataFrame(data)
-    df.to_csv('local_data/fund_list.csv')
+    df.to_csv('local_data/fund_data_list.csv')
     df_fail = pd.DataFrame(failed_list)
     df_fail.to_csv('local_data/fail.csv')
     logger.info("{}共耗时{:.2f}s, 失败{}个".format("get_fund_info", time.time() - time_s, len(df_fail)))
@@ -203,9 +244,10 @@ def download_f10_ts_data():
         progress = i / len(code_list) * 100
         print('\r 爬取' + name + '中，进度', '%.2f' % progress + '% ', end='')
         url = 'http://fund.eastmoney.com/f10/tsdata_' + name + '.html'
+        print(url)
         file_name = 'Data/f10_ts/' + name + '.json'
         response = get_response(url)
-        print(response)
+        # print(response)
 
 
 def download_manager_info():
@@ -284,4 +326,5 @@ if __name__ == '__main__':
     # solve_fund_info()
     # download_risk_info()
     url = 'http://api.fund.eastmoney.com/f10/lsjz?callback=jQuery18303457320724815821_1612713131283&fundCode=006620&pageIndex=2&pageSize=20&startDate=&endDate=&_=1612713159000'
-    print(get_response(url))
+    code = '000001'
+    get_fund_info(code)

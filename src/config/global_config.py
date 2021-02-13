@@ -3,8 +3,11 @@
 # @Email : huangzengrui@yahoo.com
 # @Desc:
 
+# 是否保存到数据库
+TO_DB = False
+
 # 请求之间需要睡眠
-NEED_SLEEP = True
+NEED_SLEEP = False
 
 # 睡眠时间
 SLEEP_TIME = 0.5

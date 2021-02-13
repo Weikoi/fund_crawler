@@ -69,7 +69,7 @@ class LogFactory(object):
                 # 开发环境下的配置
                 'dev': {
                     'class': 'logging.Formatter',
-                    'format': '[%(asctime)s] - [%(levelname)-7s] - [pid: %(process)d] -'
+                    'format': '[%(asctime)s] - [%(levelname)s] - [pid: %(process)d] -'
                               ' [%(filename)s %(lineno)s %(funcName)s] - [%(message)s]'
                 },
                 # 生产环境下的格式(越详细越好)
