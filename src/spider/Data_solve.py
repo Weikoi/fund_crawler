@@ -121,21 +121,21 @@ def solve_f10_data():
 
 def solve_crawler3():
     df = pd.read_csv('local_data/fund_data_list.csv')
-    data_list = {'基金经理': [], 
-                 '经理工作时间': [], 
-                 '经理管理基金size': [], 
-                 '股票占净比': [], 
+    data_list = {'基金经理': [],
+                 '经理工作时间': [],
+                 '经理管理基金size': [],
+                 '股票占净比': [],
                  '债券占净比': [],
-                 '现金占净比': [], 
-                 '净资产': [], 
-                 'categories1': [], 
-                 '期间申购': [], 
-                 '期间赎回': [], 
+                 '现金占净比': [],
+                 '净资产': [],
+                 'categories1': [],
+                 '期间申购': [],
+                 '期间赎回': [],
                  '总份额': [],
-                 'categories2': [], 
-                 '机构持有比例': [], 
-                 '个人持有比例': [], 
-                 '内部持有比例': [], 
+                 'categories2': [],
+                 '机构持有比例': [],
+                 '个人持有比例': [],
+                 '内部持有比例': [],
                  'categories3': []}
     # 经理信息
     # 占净比
@@ -227,14 +227,16 @@ def solve_crawler3():
 
 
 def solve_manager_info():
-    rootDir = 'Data/managerInfo/'
+    rootDir = 'local_data/manager_info/'
     org_data_list = data_read(rootDir)
     name_list = []
     manager_info_list = {'name': [], 'code': []}
     for i in range(0, len(org_data_list)):
+        print("data solve progress: {}/{}".format(i, len(org_data_list)))
         data_list = {'姓名': [], '上任日期': [], '经理代号': [], '简介': [], '基金名称': [], '基金代码': [], '基金类型': [], '起始时间': [],
                      '截止时间': [], '任职天数': [], '任职回报': [], '同类平均': [], '同类排名': []}
         # 姓名
+        print(type(org_data_list[i]))
         a = re.findall(r'姓名(.*?)<div class="space10"></div>', org_data_list[i])
         for ii in range(0, len(a)):
             b = a[ii]

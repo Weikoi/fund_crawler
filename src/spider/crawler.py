@@ -179,8 +179,8 @@ def get_category_data():
             'Data_grandTotal': [],
             # 累计收益率走势
             # list of dict -> [{"name":"华夏成长混合", data=[[时间戳, 累计收益率]]}，
-            #          {"name":"同类平均", data=[[时间戳, 累计收益率]]}，
-            #          {"name":"沪深300", data=[[时间戳, 累计收益率]]}]
+            #                  {"name":"同类平均", data=[[时间戳, 累计收益率]]}，
+            #                  {"name":"沪深300", data=[[时间戳, 累计收益率]]}]
 
             'Data_rateInSimilarType': [],  # 同类排名 [{"x":时间戳,"y":排名,"sc":总数}]
             'Data_rateInSimilarPersent': [],  # 同类排名百分比 [[时间戳， 百分比]]
@@ -259,13 +259,13 @@ def download_f10_ts_data():
 
 
 def download_manager_info():
-    data = pd.read_csv('Data/instruments_ansi.csv', encoding='ANSI')
-    code_list = data['code']
+    data = pd.read_csv('local_data//fund_list.csv')
+    code_list = data['fund_id']
     for i in range(0, len(code_list)):
         progress_bar(i, len(code_list))
         name = '%06d' % code_list[i]
         url = 'http://fundf10.eastmoney.com/jjjl_' + name + '.html'
-        file_name = 'Data/managerInfo/' + name + '.json'
+        file_name = 'local_data/manager_info/' + name + '.json'
         response = get_response(url)
         with open(file_name, 'w', encoding='utf-8') as f:
             print(response, file=f)
@@ -278,7 +278,7 @@ def download_risk_info():
         progress_bar(i, len(code_list))
         name = '%06d' % code_list[i]
         url = 'http://fund.eastmoney.com/' + name + '.html'
-        file_name = 'Data/risk/' + name + '.json'
+        file_name = 'local_data/risk/' + name + '.json'
         response = get_response(url)
         with open(file_name, 'w', encoding='utf-8') as f:
             print(response, file=f)
@@ -319,7 +319,7 @@ class FundSpider(object):
         """
         pass
 
-    def get_fund_netval(self, from_init=False):
+    def get_fund_net_val(self, from_init=False):
         """
         每日更新
         这个函数获取基金每日净值数据
