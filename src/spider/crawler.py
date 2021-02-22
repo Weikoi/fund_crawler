@@ -6,7 +6,7 @@ import math
 import datetime
 import time
 from src.utils.log_tools import get_logger
-# from .spider_exception import *
+from src.spider.spider_exception import *
 from src.config.global_config import *
 from src.data.db_pool import DBPool
 from src.config.db_config import DBConfig
@@ -97,12 +97,11 @@ def get_fund_list(url=None):
     abbreviation_list = []
     name_list = []
     type_list = []
-    name_en_list = []
     tmp = re.findall(r"(\".*?\")", response)
     total_length = len(tmp)
     for i in range(0, total_length):
-        # if NEED_SLEEP:
-        #     time.sleep(SLEEP_TIME_MIN)
+        if NEED_SLEEP:
+            time.sleep(SLEEP_TIME_MIN)
         logger.info("正在获取第 {} / {} 条基金基本信息...".format(i + 1, total_length))
         if i % 5 == 0:
             code_list.append(eval(tmp[i]))
@@ -112,16 +111,13 @@ def get_fund_list(url=None):
             name_list.append(eval(tmp[i]))
         elif i % 5 == 3:
             type_list.append(eval(tmp[i]))
-        else:
-            name_en_list.append(eval(tmp[i]))
     data['fund_id'] = code_list
     data['fund_name'] = name_list
     data['fund_abbr'] = abbreviation_list
     data['fund_type'] = type_list
     # 基金类型种类 {'其他创新', '分级杠杆', '混合型', 'QDII-指数', '混合-FOF', '联接基金', '理财型', '货币型', '定开债券',
     # '债券型', '股票指数', '股票型', 'ETF-场内', '债券指数', '固定收益', 'QDII', '股票-FOF', 'QDII-ETF'}
-    print(set(type_list))
-    # data['name_en'] = name_en_list
+    # print(set(type_list))
     df = pd.DataFrame(data)
     df.to_csv('local_data/fund_list.csv')
     if TO_DB:
@@ -132,7 +128,6 @@ def get_fund_list(url=None):
 
 
 def get_fund_info(code):
-    failed_list = []
     data_list = {}
     now = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
     url = 'http://fund.eastmoney.com/pingzhongdata/' + code + '.js?v={}'.format(now)
@@ -149,13 +144,14 @@ def get_fund_info(code):
             print("\n\n==============================")
             print(var_name)
             print([tmp[1]])
-
         return data_list
 
 
 def get_category_data():
     data = pd.read_csv('local_data//fund_list.csv')
     code_list = data['fund_id']
+
+    # 对于所有的时间戳数据都可以转成日期：datetime.date.fromtimestamp(1008604800000//1000)
     data = {'fS_name': [],  # 基金名  "华夏成长混合"
             'fS_code': [],  # 基金ID  "000001"
             'fund_sourceRate': [],  # 原费率  "1.50"
@@ -286,6 +282,7 @@ def download_risk_info():
 
 class FundSpider(object):
     # todo OOP重构
+    # todo NoSQL数据库添加 Mongo？Couch？
     def __init__(self):
         pass
 
