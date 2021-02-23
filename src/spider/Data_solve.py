@@ -58,17 +58,17 @@ def solve_fund_info():
     data_list = {}
     data_list = {'fS_name': [],
                  'fS_code': [],
-                 'fund_sourceRate': []
-        , 'fund_Rate': []
-        , 'fund_minsg': []
-        , 'syl_1n': []
-        , 'syl_6y': []
-        , 'syl_3y': []
-        , 'syl_1y': []
-        , 'Data_holderStructure': []
-        , 'Data_assetAllocation': []
-        , 'Data_currentFundManager': []
-        , 'Data_buySedemption': []}
+                 'fund_sourceRate': [],
+                 'fund_Rate': [],
+                 'fund_minsg': [],
+                 'syl_1n': [],
+                 'syl_6y': [],
+                 'syl_3y': [],
+                 'syl_1y': [],
+                 'Data_holderStructure': [],
+                 'Data_assetAllocation': [],
+                 'Data_currentFundManager': [],
+                 'Data_buySedemption': []}
     for i in range(0, len(org_data_list)):
         strs = re.findall(r'var(.*?);', org_data_list[i])
         fund_info = {}
@@ -233,10 +233,21 @@ def solve_manager_info():
     manager_info_list = {'name': [], 'code': []}
     for i in range(0, len(org_data_list)):
         print("data solve progress: {}/{}".format(i, len(org_data_list)))
-        data_list = {'姓名': [], '上任日期': [], '经理代号': [], '简介': [], '基金名称': [], '基金代码': [], '基金类型': [], '起始时间': [],
-                     '截止时间': [], '任职天数': [], '任职回报': [], '同类平均': [], '同类排名': []}
+        data_list = {'姓名': [],
+                     '上任日期': [],
+                     '经理代号': [],
+                     '简介': [],
+                     '基金名称': [],
+                     '基金代码': [],
+                     '基金类型': [],
+                     '起始时间': [],
+                     '截止时间': [],
+                     '任职天数': [],
+                     '任职回报': [],
+                     '同类平均': [],
+                     '同类排名': []}
         # 姓名
-        print(type(org_data_list[i]))
+        print(org_data_list[i])
         a = re.findall(r'姓名(.*?)<div class="space10"></div>', org_data_list[i])
         for ii in range(0, len(a)):
             b = a[ii]
@@ -276,7 +287,18 @@ def solve_manager_info():
                         data_list['简介'].append('')
                 dir = 'Data/managerSlv/' + name + '.csv'
                 df = pd.DataFrame(data_list)
-                order = ['姓名', '上任日期', '经理代号', '简介', '基金名称', '基金代码', '基金类型', '起始时间', '截止时间', '任职天数', '任职回报', '同类平均',
+                order = ['姓名',
+                         '上任日期',
+                         '经理代号',
+                         '简介',
+                         '基金名称',
+                         '基金代码',
+                         '基金类型',
+                         '起始时间',
+                         '截止时间',
+                         '任职天数',
+                         '任职回报',
+                         '同类平均',
                          '同类排名']
                 df = df[order]
                 df.to_csv(dir)
