@@ -293,7 +293,7 @@ class FundSpider(object):
         :return:
         """
         # 暂定皆为日更, 22:00
-        logger.info("====>>>>>开始执行爬虫...")
+
         while True:
             if self.mode == "once":
                 self.update_data()
@@ -301,12 +301,13 @@ class FundSpider(object):
             if self.mode == "daily" and self.time_start.hour == 22 and self.time_start.minute == 0:
                 self.update_data()
 
-        logger.info("====>>>>>爬虫总共执行时间为：{} min".format((datetime.datetime.now() - self.time_start) / 60))
-
     def update_data(self):
+        logger.info("====>>>>>开始执行爬虫...")
         self.get_fund_list()
         self.get_fund_company_list()
         self.get_fund_info()
+        logger.info("====>>>>>爬虫总共执行时间为：{:.2f} min".format
+                    ((datetime.datetime.now() - self.time_start).total_seconds() / 60))
 
     def get_fund_list(self):
         """
