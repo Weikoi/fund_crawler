@@ -26,6 +26,7 @@ logger = get_logger(file_name="spider", logger_name="main")
 if TO_DB:
     pool = DBPool(DBConfig.mysql_url)
 
+
 def get_response(url):
     """
     :param url: 网页URL
@@ -277,16 +278,33 @@ def download_risk_info():
 
 
 class FundSpider(object):
-    # todo OOP重构
-    def __init__(self):
-        pass
 
-    def run_daily_tasks(self):
+    def __init__(self, mode):
+        """
+        :param mode: "daily" or "once"
+        """
+        self.mode = mode
+        self.time_start = datetime.datetime.now()
+
+    def begin_crawler(self):
         """
         这个函数决定每天什么时刻运行什么函数更新什么数据
+        爬虫日程
         :return:
         """
-        pass
+        # 暂定皆为日更, 22:00
+        if self.mode == "once":
+            self.update_data()
+
+        if self.mode == "daily" and self.time_start.hour == 22 and self.time_start.minute == 0:
+            self.update_data()
+
+        logger.info("爬虫总共执行时间为：{} min".format((datetime.datetime.now() - self.time_start) / 60))
+
+    def update_data(self):
+        self.get_fund_list()
+        self.get_fund_company_list()
+        self.get_fund_info()
 
     def get_fund_list(self):
         """
@@ -321,10 +339,8 @@ class FundSpider(object):
 
 
 if __name__ == '__main__':
-    # download_manager_info()
-    # solve_f10_data()
-    # solve_fund_info()
-    # download_risk_info()
-    url = 'http://api.fund.eastmoney.com/f10/lsjz?callback=jQuery18303457320724815821_1612713131283&fundCode=006620&pageIndex=2&pageSize=20&startDate=&endDate=&_=1612713159000'
-    code = '000001'
-    get_fund_info(code)
+
+    # url = 'http://api.fund.eastmoney.com/f10/lsjz?callback=jQuery18303457320724815821_1612713131283&fundCode=006620&pageIndex=2&pageSize=20&startDate=&endDate=&_=1612713159000'
+    # code = '000001'
+    # get_fund_info(code)
+    FundSpider("once").begin_crawler()
