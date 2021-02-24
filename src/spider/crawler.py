@@ -294,11 +294,12 @@ class FundSpider(object):
         """
         # 暂定皆为日更, 22:00
         logger.info("====>>>>>开始执行爬虫...")
-        if self.mode == "once":
-            self.update_data()
+        while True:
+            if self.mode == "once":
+                self.update_data()
 
-        if self.mode == "daily" and self.time_start.hour == 22 and self.time_start.minute == 0:
-            self.update_data()
+            if self.mode == "daily" and self.time_start.hour == 22 and self.time_start.minute == 0:
+                self.update_data()
 
         logger.info("====>>>>>爬虫总共执行时间为：{} min".format((datetime.datetime.now() - self.time_start) / 60))
 
@@ -341,7 +342,6 @@ class FundSpider(object):
 
 
 if __name__ == '__main__':
-
     # url = 'http://api.fund.eastmoney.com/f10/lsjz?callback=jQuery18303457320724815821_1612713131283&fundCode=006620&pageIndex=2&pageSize=20&startDate=&endDate=&_=1612713159000'
     # code = '000001'
     # get_fund_info(code)
