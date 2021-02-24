@@ -6,6 +6,9 @@
 # 是否保存到数据库
 TO_DB = False
 
+# 是否使用Debug模式
+DEBUG = True
+
 # 请求之间需要睡眠
 NEED_SLEEP = False
 
