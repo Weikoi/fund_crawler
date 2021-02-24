@@ -1,6 +1,14 @@
-from src.spider.crawler import *
-from src.spider.Data_solve import *
+#!usr/bin/env python
+# -*- coding: utf-8 -*-
+# **************************************************
+# @Time : 2021/2/24 12:47
+# @Author : Huang Zengrui
+# @Email : huangzengrui@yahoo.com
+# @Desc :
+# **************************************************
 
+from src.spider.crawler import *
+from src.spider.Data_process import *
 import datetime
 from src.utils.log_tools import get_logger
 
@@ -23,13 +31,13 @@ if __name__ == '__main__':
     # download_f10_ts_data()
 
     # # 基金经理信息下载
-    # download_manager_info()
+    download_manager_info()
 
     # # std 和夏普比率信息处理
     # solve_f10_data()
 
     # # 基金经理信息处理
-    solve_manager_info()
+    # solve_manager_info()
 
     # # pingzhong data 处理
     # solve_crawler3()

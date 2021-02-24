@@ -1,3 +1,13 @@
+#!usr/bin/env python
+# -*- coding: utf-8 -*-
+# **************************************************
+# @Time : 2021/2/24 12:47
+# @Author : Huang Zengrui
+# @Email : huangzengrui@yahoo.com
+# @Desc :
+# **************************************************
+
+
 import requests
 import pandas as pd
 import re
@@ -10,6 +20,7 @@ from src.utils.log_tools import get_logger
 from src.config.global_config import *
 from src.data.db_pool import DBPool
 from src.config.db_config import DBConfig
+from src.utils.tools import *
 
 logger = get_logger(file_name="spider", logger_name="main")
 if TO_DB:

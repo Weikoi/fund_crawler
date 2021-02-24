@@ -1,7 +1,11 @@
-# @Time : 2021/2/4 21:47 
+#!usr/bin/env python
+# -*- coding: utf-8 -*-
+# **************************************************
+# @Time : 2021/2/24 12:47
 # @Author : Huang Zengrui
 # @Email : huangzengrui@yahoo.com
-# @Desc: 自定义异常类
+# @Desc : 自定义异常类
+# **************************************************
 
 
 class ExternalException(Exception):
