@@ -16,7 +16,7 @@ logger = get_logger(file_name="spider", logger_name="main")
 
 if __name__ == '__main__':
     # ============>>>>>>>>>每日执行：
-    logger.info("====>>>>>开始执行爬虫...")
+
 
     # 获取公司列表
     # get_company_list()

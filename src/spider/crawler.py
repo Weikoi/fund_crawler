@@ -293,13 +293,14 @@ class FundSpider(object):
         :return:
         """
         # 暂定皆为日更, 22:00
+        logger.info("====>>>>>开始执行爬虫...")
         if self.mode == "once":
             self.update_data()
 
         if self.mode == "daily" and self.time_start.hour == 22 and self.time_start.minute == 0:
             self.update_data()
 
-        logger.info("爬虫总共执行时间为：{} min".format((datetime.datetime.now() - self.time_start) / 60))
+        logger.info("====>>>>>爬虫总共执行时间为：{} min".format((datetime.datetime.now() - self.time_start) / 60))
 
     def update_data(self):
         self.get_fund_list()
@@ -336,6 +337,7 @@ class FundSpider(object):
         :param from_init:boolean 是否从最开始更新净值，默认否，即指增量更新最新的净值
         :return:
         """
+        pass
 
 
 if __name__ == '__main__':
@@ -343,4 +345,4 @@ if __name__ == '__main__':
     # url = 'http://api.fund.eastmoney.com/f10/lsjz?callback=jQuery18303457320724815821_1612713131283&fundCode=006620&pageIndex=2&pageSize=20&startDate=&endDate=&_=1612713159000'
     # code = '000001'
     # get_fund_info(code)
-    FundSpider("once").begin_crawler()
+    FundSpider("daily").begin_crawler()
