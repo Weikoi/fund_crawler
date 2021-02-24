@@ -236,6 +236,7 @@ def solve_crawler3():
 
 
 def solve_manager_info():
+    # http: // fund.eastmoney.com / data / FundDataPortfolio_Interface.aspx?dt = 17 & mc = jjjl & pn = 20 & pi = 3 & jlid = 30040401 & _ = 1614183416465
     rootDir = 'local_data/manager_info/'
     org_data_list = data_read(rootDir)
     name_list = []

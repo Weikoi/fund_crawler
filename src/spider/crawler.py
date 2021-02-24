@@ -11,6 +11,7 @@
 import requests
 import pandas as pd
 import re
+import os
 import sys
 import math
 import datetime
@@ -22,6 +23,8 @@ from src.data.db_pool import DBPool
 from src.config.db_config import DBConfig
 from src.utils.tools import *
 
+if not os.path.exists("./local_data"):
+    os.makedirs("./local_data")
 logger = get_logger(file_name="spider", logger_name="spider")
 if TO_DB:
     pool = DBPool(DBConfig.mysql_url)
@@ -217,6 +220,7 @@ class FundSpider(object):
     def get_fund_info(self):
         """
         这个函数获取基金详情页面数据
+        [get_fund_info共耗时2853.12s, 失败178个]
         :return:
         """
         logger.info("*******************************************************************")
@@ -305,12 +309,12 @@ class FundSpider(object):
         df = pd.DataFrame(data)
         df.to_csv('local_data/fund_info_raw.csv', index=False)
         df_fail = pd.DataFrame(failed_list, columns=["failed_fund_code"])
-        df_fail.to_csv('local_data/fail.csv')
+        df_fail.to_csv('local_data/failed_fund_code.csv', index=False)
         logger.info("< 基金详情信息 >爬取成功 {} 条".format(len(data["fS_code"])))
         logger.info("< 基金详情信息 >爬取失败 {} 条".format(len(failed_list)))
         logger.info("< 基金详情信息 >写入 CSV 成功")
         logger.info("< 基金详情信息 >失败列表写入 CSV 成功")
-        logger.info("< 基金详情信息 >爬取完成,共耗时{:.2f}s <<<<<==========".format((time.time() - time_s)))
+        logger.info("< 基金详情信息 >爬取完成,共耗时{:.2f} min <<<<<==========".format((time.time() - time_s)/60))
         logger.info("*******************************************************************")
 
     @staticmethod
