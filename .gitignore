@@ -110,3 +110,7 @@ venv.bak/
 .mypy_cache/
 *.json
 *.csv
+
+
+# demo
+*demo.py

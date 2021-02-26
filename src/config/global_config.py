@@ -7,7 +7,7 @@
 TO_DB = False
 
 # 是否使用Debug模式
-DEBUG = True
+DEBUG = False
 
 # 请求之间需要睡眠
 NEED_SLEEP = False

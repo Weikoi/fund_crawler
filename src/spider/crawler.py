@@ -16,6 +16,7 @@ import sys
 import math
 import datetime
 import time
+from lxml import etree
 from src.utils.log_tools import get_logger
 from src.spider.spider_exception import *
 from src.config.global_config import *
@@ -80,18 +81,20 @@ class FundSpider(object):
     def update_data(self):
         logger.info("====>>>>>开始执行爬虫 with mode < {} >...".format(self.mode))
         time_s = datetime.datetime.now()
-        self.get_fund_list()
-        self.get_fund_company_list()
-        self.get_fund_info()
+        # self.get_fund_list()
+        # self.get_fund_company_list()
+        # self.get_fund_info()
+        self.get_special_info()
+        self.get_manager_info()
         logger.info("====>>>>>爬虫总共执行时间为：{:.2f} min".format
                     ((datetime.datetime.now() - time_s).total_seconds() / 60))
 
     def process_data(self):
         logger.info("====>>>>>开始处理数据 with mode < {} >...".format(self.mode))
         time_s = datetime.datetime.now()
-        self.process_fund_data()
-        self.process_special_data()
-        self.process_manager_data()
+        # self.process_fund_data()
+        # self.process_special_data()
+        # self.process_manager_data()
         logger.info("====>>>>>数据处理时间总共执行时间为：{:.2f} min".format
                     ((datetime.datetime.now() - time_s).total_seconds() / 60))
 
@@ -262,7 +265,7 @@ class FundSpider(object):
             progress = idx / len(code_list) * 100
             print('\r 爬取' + fund_code + '中，进度', '%.2f' % progress + '% ', end='')
             # progress_bar(idx, len(code_list))
-            fund_info = self._get_fund_info(fund_code)
+            fund_info = self._get_fund_info_page(fund_code)
             if fund_info == '':
                 failed_list.append(fund_code)
             else:
@@ -286,7 +289,7 @@ class FundSpider(object):
         logger.info("*******************************************************************")
 
     @staticmethod
-    def _get_fund_info(code):
+    def _get_fund_info_page(code):
         """
         解析基金详情页面数据
         :param code:
@@ -311,7 +314,7 @@ class FundSpider(object):
             return data_list
 
     @staticmethod
-    def get_special_data():
+    def get_special_info():
         """
         基金风险、投资风格、业绩评价数据，保存成本地json文件
         :return:
@@ -342,10 +345,10 @@ class FundSpider(object):
             with open(file_name, 'w', encoding='utf-8') as f:
                 print(response, file=f)
         failed_df = pd.DataFrame(failed_list, columns=["Failed_Code"])
-        failed_df.to_csv("local_data/special_data/failed_code_list", index=False)
+        failed_df.to_csv("local_data/special_data/failed_code_list.csv", index=False)
         logger.info("< 基金特色数据 >爬取成功 {} 条".format(success_count))
         logger.info("< 基金特色数据 >爬取失败 {} 条".format(len(failed_list)))
-        logger.info("< 基金特色数据 >写入 CSV 成功")
+        logger.info("< 基金特色数据 >写入 json 成功")
         logger.info("< 基金特色数据 >失败列表写入 CSV 成功")
         logger.info("< 基金特色数据 >爬取完成,共耗时{:.2f} min <<<<<==========".format((time.time() - time_s) / 60))
         logger.info("*******************************************************************")
@@ -378,10 +381,10 @@ class FundSpider(object):
             with open(file_name, 'w', encoding='utf-8') as f:
                 print(response, file=f)
         failed_df = pd.DataFrame(failed_list, columns=["Failed_Code"])
-        failed_df.to_csv("local_data/manager_data/failed_code_list", index=False)
+        failed_df.to_csv("local_data/manager_data/failed_code_list.csv", index=False)
         logger.info("< 基金经理数据 >爬取成功 {} 条".format(success_count))
         logger.info("< 基金经理数据 >爬取失败 {} 条".format(len(failed_list)))
-        logger.info("< 基金经理数据 >写入 CSV 成功")
+        logger.info("< 基金经理数据 >写入 json 成功")
         logger.info("< 基金经理数据 >失败列表写入 CSV 成功")
         logger.info("< 基金经理数据 >爬取完成,共耗时{:.2f} min <<<<<==========".format((time.time() - time_s) / 60))
         logger.info("*******************************************************************")
@@ -406,6 +409,13 @@ class FundSpider(object):
 
     @staticmethod
     def process_special_data():
+        """
+        处理特色数据：STD， Sharp, 风险等级
+        :return:
+        """
+        logger.info("*******************************************************************")
+        logger.info("< 基金特色数据 >开始处理...")
+        time_s = time.time()
         data_dir = './local_data/special_data/'
         raw_data_list = os.walk(data_dir)
         data_list = {'fund_id': [],
@@ -414,22 +424,71 @@ class FundSpider(object):
                      '3y_std': [],
                      '1y_sharp': [],
                      '2y_sharp': [],
-                     '3y_sharp': []}
+                     '3y_sharp': [],
+                     'risk_in_all': [],
+                     'risk_in_category': []
+                     }
 
-        for index, each_data in enumerate(raw_data_list):
-            temp = re.findall(r'<td class=\'num\'>(.*?)</td>', each_data)
-            if len(temp) > 0:
-                data_list['近1年std'].append(temp[0])
-                data_list['近2年std'].append(temp[1])
-                data_list['近3年std'].append(temp[2])
-                data_list['近1年夏普率'].append(temp[3])
-                data_list['近2年夏普率'].append(temp[4])
-                data_list['近3年夏普率'].append(temp[5])
-                temp = re.findall(r'tsdata_(.*?).htm', each_data)
-                code = '%06d' % int(temp[0])
-                data_list['fund_id'].append(code)
+        for file_list in raw_data_list:
+            total_length = len(file_list[2])
+            # walk的结果是个三元组，第三位是文件列表
+            for index, file in enumerate(file_list[2]):
+                print("\r < 基金特色数据 >处理进度：{}/{}".format(index, total_length), end='')
+                if os.path.splitext(file)[1] == '.json':
+                    with open(data_dir+file, 'r', encoding='utf-8') as f:
+                        each_data = f.read()
+                        temp = re.findall(r'<td class=\'num\'>(.*?)</td>', each_data)
+                        if len(temp) > 0:
+                            data_list['1y_std'].append(temp[0])
+                            data_list['2y_std'].append(temp[1])
+                            data_list['3y_std'].append(temp[2])
+                            data_list['1y_sharp'].append(temp[3])
+                            data_list['2y_sharp'].append(temp[4])
+                            data_list['3y_sharp'].append(temp[5])
+                            temp = re.findall(r'tsdata_(.*?).htm', each_data)
+                            code = '%06d' % int(temp[0])
+                            data_list['fund_id'].append(code)
+                            # 转换为etree对象
+                            tree = etree.HTML(each_data)
+                            # 匹配到所有class属性为thumb的div标签下的img标签的src属性值,返回一个列表
+                            li_list = tree.xpath('//div[@class="fxdj"]//li')
+
+                            # 10个li标签代表两种风险等级数据都有
+                            if len(li_list)==10:
+                                flag_position = []
+                                for li_idx, li in enumerate(li_list):
+                                    if len(li.xpath('./span')) == 2:
+                                        flag_position.append(li_idx + 1)
+                                # 风险等级： 1-低 2-较低 3中等 4-较高 5-高
+                                data_list['risk_in_all'].append(flag_position[0])
+                                data_list['risk_in_category'].append(flag_position[1]-5)
+
+                            # 6个li标签代表两种风险等级数据缺失了一种，确实的那种li中有“暂无数据”text
+                            elif len(li_list) == 6 and li_list[0].text:
+                                flag_position = []
+                                for li_idx, li in enumerate(li_list):
+                                    if len(li.xpath('./span')) == 2:
+                                        flag_position.append(li_idx)
+                                # 风险等级： 1-低 2-较低 3中等 4-较高 5-高, 没有默认为3
+                                data_list['risk_in_all'].append(3)
+                                data_list['risk_in_category'].append(flag_position[0])
+
+                            elif len(li_list) == 6 and li_list[-1].text:
+                                flag_position = []
+                                for li_idx, li in enumerate(li_list):
+                                    if len(li.xpath('./span')) == 2:
+                                        flag_position.append(li_idx+1)
+                                # 风险等级： 1-低 2-较低 3中等 4-较高 5-高, 没有默认为3
+                                data_list['risk_in_all'].append(flag_position[0])
+                                data_list['risk_in_category'].append(3)
+                            else:
+                                data_list['risk_in_all'].append(3)
+                                data_list['risk_in_category'].append(3)
+
         df = pd.DataFrame(data_list, index=data_list['fund_id'])
-        df.to_csv('Data/f10_ts/std and sharp ratio.csv')
+        df.to_csv('local_data/std_and_sharp_ratio_and_risk_level.csv', index=False)
+        logger.info("< 基金特色数据 >处理完成,共耗时{:.2f} min <<<<<==========".format((time.time() - time_s) / 60))
+        logger.info("*******************************************************************")
 
     def process_manager_data(self):
         pass
