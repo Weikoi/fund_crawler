@@ -404,8 +404,32 @@ class FundSpider(object):
     def process_fund_data(self):
         pass
 
-    def process_special_data(self):
-        pass
+    @staticmethod
+    def process_special_data():
+        data_dir = './local_data/special_data/'
+        raw_data_list = os.walk(data_dir)
+        data_list = {'fund_id': [],
+                     '1y_std': [],
+                     '2y_std': [],
+                     '3y_std': [],
+                     '1y_sharp': [],
+                     '2y_sharp': [],
+                     '3y_sharp': []}
+
+        for index, each_data in enumerate(raw_data_list):
+            temp = re.findall(r'<td class=\'num\'>(.*?)</td>', each_data)
+            if len(temp) > 0:
+                data_list['近1年std'].append(temp[0])
+                data_list['近2年std'].append(temp[1])
+                data_list['近3年std'].append(temp[2])
+                data_list['近1年夏普率'].append(temp[3])
+                data_list['近2年夏普率'].append(temp[4])
+                data_list['近3年夏普率'].append(temp[5])
+                temp = re.findall(r'tsdata_(.*?).htm', each_data)
+                code = '%06d' % int(temp[0])
+                data_list['fund_id'].append(code)
+        df = pd.DataFrame(data_list, index=data_list['fund_id'])
+        df.to_csv('Data/f10_ts/std and sharp ratio.csv')
 
     def process_manager_data(self):
         pass
@@ -421,4 +445,7 @@ class FundSpider(object):
 
 
 if __name__ == '__main__':
-    FundSpider("once").begin_crawler()
+    for idx, data in enumerate(os.walk("./local_data/special_data/")):
+        print(idx)
+        print(data[0])
+        print(data[1])

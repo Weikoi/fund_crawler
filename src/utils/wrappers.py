@@ -38,7 +38,7 @@ def time_log_info(func):
         res = func(*args, **kwargs)
         # 运行后
         time_cost = timeit.default_timer() - start
-        logger.warning("执行耗时: {:.8f}s  函数[{}] ".format(time_cost, func.__name__))
+        logger.debug("执行耗时: {:.8f}s  函数[{}] ".format(time_cost, func.__name__))
         return res
 
     return wrapper

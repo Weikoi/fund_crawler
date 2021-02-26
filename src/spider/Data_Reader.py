@@ -53,3 +53,7 @@ def data_read(rootDir):
     print("data_list", data_list)
     print("list_name", list_name)
     return data_list, list_name
+
+
+if __name__ == '__main__':
+    print(data_read("E:\\PycharmProjects\\fund_crawler\\src\\spider\\local_data\\manager_info"))
