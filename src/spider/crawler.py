@@ -45,53 +45,6 @@ def get_response(url):
         return ''
 
 
-def get_special_data():
-    """
-    基金风险、投资风格、业绩评价
-    :return:
-    """
-    data = pd.read_csv('local_data//fund_list.csv')
-    code_list = data['fund_id']
-    for i in range(0, len(code_list)):
-        if NEED_SLEEP:
-            time.sleep(SLEEP_TIME_MIN)
-        # progress_bar(i, len(code_list))
-        name = '%06d' % code_list[i]
-        progress = i / len(code_list) * 100
-        print('\r 爬取' + name + '中，进度', '%.2f' % progress + '% ', end='')
-        url = 'http://fund.eastmoney.com/f10/tsdata_' + name + '.html'
-        print(url)
-        file_name = 'Data/f10_ts/' + name + '.json'
-        response = get_response(url)
-        # print(response)
-
-
-def download_manager_info():
-    data = pd.read_csv('local_data//fund_list.csv')
-    code_list = data['fund_id']
-    for i in range(0, len(code_list)):
-        # progress_bar(i, len(code_list))
-        name = '%06d' % code_list[i]
-        url = 'http://fundf10.eastmoney.com/jjjl_' + name + '.html'
-        file_name = 'local_data/manager_info/' + name + '.json'
-        response = get_response(url)
-        with open(file_name, 'w', encoding='utf-8') as f:
-            print(response, file=f)
-
-
-def download_risk_info():
-    data = pd.read_csv('local_data//fund_list.csv')
-    code_list = data['code']
-    for i in range(0, len(code_list)):
-        # progress_bar(i, len(code_list))
-        name = '%06d' % code_list[i]
-        url = 'http://fund.eastmoney.com/' + name + '.html'
-        file_name = 'local_data/risk/' + name + '.json'
-        response = get_response(url)
-        with open(file_name, 'w', encoding='utf-8') as f:
-            print(response, file=f)
-
-
 class FundSpider(object):
 
     def __init__(self, mode):
@@ -99,7 +52,7 @@ class FundSpider(object):
         :param mode: "daily" or "once"
         """
         self.mode = mode
-        self.time_start = datetime.datetime.now()
+        self.time_now = datetime.datetime.now()
 
     def begin_crawler(self):
         """
@@ -112,20 +65,35 @@ class FundSpider(object):
         while True:
             if self.mode == "once":
                 self.update_data()
+                self.process_data()
                 break
-            self.time_start = datetime.datetime.now()
-            if self.mode == "daily" and self.time_start.hour == 20 \
-                    and self.time_start.minute == 54 and self.time_start.second == 0:
+            self.time_now = datetime.datetime.now()
+            if self.mode == "daily" and self.time_now.hour == 20 \
+                    and self.time_now.minute == 54 and self.time_now.second == 0:
                 self.update_data()
+                time.sleep(2)
+            if self.mode == "daily" and self.time_now.hour == 3 \
+                    and self.time_now.minute == 0 and self.time_now.second == 0:
+                self.process_data()
                 time.sleep(2)
 
     def update_data(self):
         logger.info("====>>>>>开始执行爬虫 with mode < {} >...".format(self.mode))
+        time_s = datetime.datetime.now()
         self.get_fund_list()
         self.get_fund_company_list()
         self.get_fund_info()
         logger.info("====>>>>>爬虫总共执行时间为：{:.2f} min".format
-                    ((datetime.datetime.now() - self.time_start).total_seconds() / 60))
+                    ((datetime.datetime.now() - time_s).total_seconds() / 60))
+
+    def process_data(self):
+        logger.info("====>>>>>开始处理数据 with mode < {} >...".format(self.mode))
+        time_s = datetime.datetime.now()
+        self.process_fund_data()
+        self.process_special_data()
+        self.process_manager_data()
+        logger.info("====>>>>>数据处理时间总共执行时间为：{:.2f} min".format
+                    ((datetime.datetime.now() - time_s).total_seconds() / 60))
 
     @staticmethod
     def get_fund_list():
@@ -314,11 +282,16 @@ class FundSpider(object):
         logger.info("< 基金详情信息 >爬取失败 {} 条".format(len(failed_list)))
         logger.info("< 基金详情信息 >写入 CSV 成功")
         logger.info("< 基金详情信息 >失败列表写入 CSV 成功")
-        logger.info("< 基金详情信息 >爬取完成,共耗时{:.2f} min <<<<<==========".format((time.time() - time_s)/60))
+        logger.info("< 基金详情信息 >爬取完成,共耗时{:.2f} min <<<<<==========".format((time.time() - time_s) / 60))
         logger.info("*******************************************************************")
 
     @staticmethod
     def _get_fund_info(code):
+        """
+        解析基金详情页面数据
+        :param code:
+        :return:
+        """
         data_list = {}
         now = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
         url = 'http://fund.eastmoney.com/pingzhongdata/' + code + '.js?v={}'.format(now)
@@ -337,6 +310,106 @@ class FundSpider(object):
                 # print([tmp[1]])
             return data_list
 
+    @staticmethod
+    def get_special_data():
+        """
+        基金风险、投资风格、业绩评价数据，保存成本地json文件
+        :return:
+        """
+        logger.info("*******************************************************************")
+        logger.info("< 基金特色数据 >开始获取...")
+        time_s = time.time()
+        if not os.path.exists("./local_data/special_data"):
+            os.makedirs("./local_data/special_data")
+        data = pd.read_csv('local_data//fund_list.csv')
+        code_list = data['fund_id']
+        failed_list = []
+        success_count = 0
+        for i in range(0, len(code_list)):
+            if NEED_SLEEP:
+                time.sleep(SLEEP_TIME_MIN)
+            # progress_bar(i, len(code_list))
+            name = '%06d' % code_list[i]
+            progress = i / len(code_list) * 100
+            url = 'http://fund.eastmoney.com/f10/tsdata_' + name + '.html'
+            print('\r 爬取' + name + '中，进度', '%.2f' % progress + '% {}'.format(url), end='')
+            file_name = 'local_data/special_data/' + name + '.json'
+            response = get_response(url)
+            if not response:
+                failed_list.append(i)
+            else:
+                success_count += 1
+            with open(file_name, 'w', encoding='utf-8') as f:
+                print(response, file=f)
+        failed_df = pd.DataFrame(failed_list, columns=["Failed_Code"])
+        failed_df.to_csv("local_data/special_data/failed_code_list", index=False)
+        logger.info("< 基金特色数据 >爬取成功 {} 条".format(success_count))
+        logger.info("< 基金特色数据 >爬取失败 {} 条".format(len(failed_list)))
+        logger.info("< 基金特色数据 >写入 CSV 成功")
+        logger.info("< 基金特色数据 >失败列表写入 CSV 成功")
+        logger.info("< 基金特色数据 >爬取完成,共耗时{:.2f} min <<<<<==========".format((time.time() - time_s) / 60))
+        logger.info("*******************************************************************")
+
+    @staticmethod
+    def get_manager_info():
+        """
+        获取基金经理数据，保存成本地json文件
+        :return:
+        """
+        logger.info("*******************************************************************")
+        logger.info("< 基金经理数据 >开始获取...")
+        time_s = time.time()
+        if not os.path.exists("./local_data/manager_data"):
+            os.makedirs("./local_data/manager_data")
+        data = pd.read_csv('local_data//fund_list.csv')
+        code_list = data['fund_id']
+        failed_list = []
+        success_count = 0
+        for i in range(0, len(code_list)):
+            # progress_bar(i, len(code_list))
+            name = '%06d' % code_list[i]
+            url = 'http://fundf10.eastmoney.com/jjjl_' + name + '.html'
+            file_name = 'local_data/manager_data/' + name + '.json'
+            response = get_response(url)
+            if not response:
+                failed_list.append(i)
+            else:
+                success_count += 1
+            with open(file_name, 'w', encoding='utf-8') as f:
+                print(response, file=f)
+        failed_df = pd.DataFrame(failed_list, columns=["Failed_Code"])
+        failed_df.to_csv("local_data/manager_data/failed_code_list", index=False)
+        logger.info("< 基金经理数据 >爬取成功 {} 条".format(success_count))
+        logger.info("< 基金经理数据 >爬取失败 {} 条".format(len(failed_list)))
+        logger.info("< 基金经理数据 >写入 CSV 成功")
+        logger.info("< 基金经理数据 >失败列表写入 CSV 成功")
+        logger.info("< 基金经理数据 >爬取完成,共耗时{:.2f} min <<<<<==========".format((time.time() - time_s) / 60))
+        logger.info("*******************************************************************")
+
+    @staticmethod
+    def get_risk_info():
+        if not os.path.exists("./local_data/risk_data"):
+            os.makedirs("./local_data/risk_data")
+        data = pd.read_csv('local_data//fund_list.csv')
+        code_list = data['code']
+        for i in range(0, len(code_list)):
+            # progress_bar(i, len(code_list))
+            name = '%06d' % code_list[i]
+            url = 'http://fund.eastmoney.com/' + name + '.html'
+            file_name = 'local_data/risk_data/' + name + '.json'
+            response = get_response(url)
+            with open(file_name, 'w', encoding='utf-8') as f:
+                print(response, file=f)
+
+    def process_fund_data(self):
+        pass
+
+    def process_special_data(self):
+        pass
+
+    def process_manager_data(self):
+        pass
+
     def get_fund_net_val(self, from_init=False):
         """
         每日更新
@@ -348,7 +421,4 @@ class FundSpider(object):
 
 
 if __name__ == '__main__':
-    # url = 'http://api.fund.eastmoney.com/f10/lsjz?callback=jQuery18303457320724815821_1612713131283&fundCode=006620&pageIndex=2&pageSize=20&startDate=&endDate=&_=1612713159000'
-    # code = '000001'
-    # get_fund_info(code)
     FundSpider("once").begin_crawler()
