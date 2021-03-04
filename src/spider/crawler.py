@@ -209,10 +209,10 @@ class FundSpider(object):
                 'zqCodes': [],  # 基金持仓债券代码
                 'stockCodesNew': [],  # 基金持仓股票代码(新市场号)
                 'zqCodesNew': [],  # 基金持仓债券代码（新市场号）
-                'syl_1n': [],  # 近一年收益率  "42.74"
-                'syl_6y': [],  # 近6月收益率  "9.34"
-                'syl_3y': [],  # 近3月收益率  "11.56"
-                'syl_1y': [],  # 近1月收益率  "11.88"
+                'syl_1y': [],  # 近一年收益率  "42.74"
+                'syl_6m': [],  # 近6月收益率  "9.34"
+                'syl_3m': [],  # 近3月收益率  "11.56"
+                'syl_1m': [],  # 近1月收益率  "11.88"
                 'Data_fundSharesPositions': [],  # 股票仓位测算图（推测仓位）
                 # [[1610553600000,95.00],[1610640000000,95.00],[1610899200000,84.200],[1610985600000,97.0300],[1611072000000,93.6100],[1611158400000,92.00],[1611244800000,96.0600],[1611504000000,91.9700],[1611590400000,95.00],[1611676800000,96.3900],[1611763200000,95.00],[1611849600000,95.00],[1612108800000,95.00],[1612195200000,95.00],[1612281600000,95.00],[1612368000000,97.200],[1612454400000,95.00],[1612713600000,95.00],[1612800000000,95.00]]
 
@@ -220,9 +220,9 @@ class FundSpider(object):
                 'Data_ACWorthTrend': [],  # list -> [[时间戳, 累计净值]]
                 'Data_grandTotal': [],
                 # 累计收益率走势
-                # list of dict -> [{"name":"华夏成长混合", data=[[时间戳, 累计收益率]]}，
-                #                  {"name":"同类平均", data=[[时间戳, 累计收益率]]}，
-                #                  {"name":"沪深300", data=[[时间戳, 累计收益率]]}]
+                # list of dict -> [{"name":"华夏成长混合", data=[[时间戳, 累计收益率],]}，
+                #                  {"name":"同类平均", data=[[时间戳, 累计收益率],]}，
+                #                  {"name":"沪深300", data=[[时间戳, 累计收益率],]}]
 
                 'Data_rateInSimilarType': [],  # 同类排名 [{"x":时间戳,"y":排名,"sc":总数}]
                 'Data_rateInSimilarPersent': [],  # 同类排名百分比 [[时间戳， 百分比]]
@@ -364,8 +364,8 @@ class FundSpider(object):
         time_s = time.time()
         if not os.path.exists("./local_data/manager_data"):
             os.makedirs("./local_data/manager_data")
-        data = pd.read_csv('local_data//fund_list.csv')
-        code_list = data['fund_id']
+        code_list_data = pd.read_csv('local_data//fund_list.csv')
+        code_list = code_list_data['fund_id']
         failed_list = []
         success_count = 0
         for i in range(0, len(code_list)):
@@ -435,7 +435,7 @@ class FundSpider(object):
             for index, file in enumerate(file_list[2]):
                 print("\r < 基金特色数据 >处理进度：{}/{}".format(index, total_length), end='')
                 if os.path.splitext(file)[1] == '.json':
-                    with open(data_dir+file, 'r', encoding='utf-8') as f:
+                    with open(data_dir + file, 'r', encoding='utf-8') as f:
                         each_data = f.read()
                         temp = re.findall(r'<td class=\'num\'>(.*?)</td>', each_data)
                         if len(temp) > 0:
@@ -454,14 +454,14 @@ class FundSpider(object):
                             li_list = tree.xpath('//div[@class="fxdj"]//li')
 
                             # 10个li标签代表两种风险等级数据都有
-                            if len(li_list)==10:
+                            if len(li_list) == 10:
                                 flag_position = []
                                 for li_idx, li in enumerate(li_list):
                                     if len(li.xpath('./span')) == 2:
                                         flag_position.append(li_idx + 1)
                                 # 风险等级： 1-低 2-较低 3中等 4-较高 5-高
                                 data_list['risk_in_all'].append(flag_position[0])
-                                data_list['risk_in_category'].append(flag_position[1]-5)
+                                data_list['risk_in_category'].append(flag_position[1] - 5)
 
                             # 6个li标签代表两种风险等级数据缺失了一种，确实的那种li中有“暂无数据”text
                             elif len(li_list) == 6 and li_list[0].text:
@@ -477,7 +477,7 @@ class FundSpider(object):
                                 flag_position = []
                                 for li_idx, li in enumerate(li_list):
                                     if len(li.xpath('./span')) == 2:
-                                        flag_position.append(li_idx+1)
+                                        flag_position.append(li_idx + 1)
                                 # 风险等级： 1-低 2-较低 3中等 4-较高 5-高, 没有默认为3
                                 data_list['risk_in_all'].append(flag_position[0])
                                 data_list['risk_in_category'].append(3)
@@ -490,8 +490,97 @@ class FundSpider(object):
         logger.info("< 基金特色数据 >处理完成,共耗时{:.2f} min <<<<<==========".format((time.time() - time_s) / 60))
         logger.info("*******************************************************************")
 
-    def process_manager_data(self):
-        pass
+    @staticmethod
+    def process_manager_data():
+        """
+        处理基金经理页面数据
+        :return:
+        """
+        logger.info("*******************************************************************")
+        logger.info("< 基金经理数据 >开始处理...")
+        time_s = time.time()
+        data_dir = 'local_data/manager_data/'
+        raw_data_list = os.walk(data_dir)
+        name_list = []
+        manager_info_list = {'name': [], 'code': []}
+        for file_list in raw_data_list:
+            total_length = file_list[2]
+            for index, file in enumerate(file_list[2]):
+                print("\r < 基金经理数据 >处理进度：{}/{}".format(index, total_length), end='')
+                if os.path.splitext(file)[1] == '.json':
+                    with open(data_dir + file, 'r', encoding='utf-8') as f:
+                        each_data = f.read()
+                        data_list = {'姓名': [],
+                                     '上任日期': [],
+                                     '经理代号': [],
+                                     '简介': [],
+                                     '基金名称': [],
+                                     '基金代码': [],
+                                     '基金类型': [],
+                                     '起始时间': [],
+                                     '截止时间': [],
+                                     '任职天数': [],
+                                     '任职回报': [],
+                                     '同类平均': [],
+                                     '同类排名': []}
+                        temp = re.findall(r'姓名(.*?)<div class="space10"></div>', each_data)
+                        for ii in range(0, len(temp)):
+                            b = temp[ii]
+                            name = re.findall(r'\">(.*?)</a></p><p><strong>', b)[0]
+                            if name not in name_list:
+                                name_list.append(name)
+                                duty_date = re.findall(r'上任日期：</strong>(.*?)</p>', b)[0]
+                                brief_intro = re.findall(r'</p><p>(.*?)</p><p class="tor">', b)[0].split('<p>')[-1]
+                                manager_code = re.findall(r'"http://fund.eastmoney.com/manager/(.*?).html', b)[0]
+                                data_list['姓名'].append(name)
+                                data_list['上任日期'].append(duty_date)
+                                data_list['经理代号'].append(manager_code)
+                                data_list['简介'].append(brief_intro)
+                                fund_info_list = re.findall(r'html\"(.*?)</tr>', b)[1:]
+
+                                # manager list
+                                manager_info_list['name'].append(name)
+                                manager_info_list['code'].append(manager_code)
+
+                                for iii in range(0, len(fund_info_list)):
+                                    fund_list = re.findall(r'>(.*?)</td>' or r'>(.*?)</a></td>', fund_info_list[iii])
+                                    fund_list[0] = fund_list[0].split('<')[0]
+                                    fund_list[1] = re.findall(r'>(.*?)<', fund_list[1])[0]
+                                    data_list['基金名称'].append(fund_list[1])
+                                    data_list['基金代码'].append(fund_list[0])
+                                    data_list['基金类型'].append(fund_list[2])
+                                    data_list['起始时间'].append(fund_list[3])
+                                    data_list['截止时间'].append(fund_list[4])
+                                    data_list['任职天数'].append(fund_list[5])
+                                    data_list['任职回报'].append(fund_list[6])
+                                    data_list['同类平均'].append(fund_list[7])
+                                    data_list['同类排名'].append(fund_list[8])
+                                    if iii > 0:
+                                        data_list['姓名'].append('')
+                                        data_list['上任日期'].append('')
+                                        data_list['经理代号'].append('')
+                                        data_list['简介'].append('')
+                                dir_temp = 'local_data/manager_data/' + name + '.csv'
+                                df = pd.DataFrame(data_list)
+                                order = ['姓名',
+                                         '上任日期',
+                                         '经理代号',
+                                         '简介',
+                                         '基金名称',
+                                         '基金代码',
+                                         '基金类型',
+                                         '起始时间',
+                                         '截止时间',
+                                         '任职天数',
+                                         '任职回报',
+                                         '同类平均',
+                                         '同类排名']
+                                df = df[order]
+                                df.to_csv(dir_temp)
+        df_manager_info_list = pd.DataFrame(manager_info_list)
+        df_manager_info_list.to_csv('local_data/manager_list.csv')
+        logger.info("< 基金特色数据 >处理完成,共耗时{:.2f} min <<<<<==========".format((time.time() - time_s) / 60))
+        logger.info("*******************************************************************")
 
     def get_fund_net_val(self, from_init=False):
         """
@@ -508,3 +597,4 @@ if __name__ == '__main__':
         print(idx)
         print(data[0])
         print(data[1])
+        print(data[2])

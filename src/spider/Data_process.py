@@ -100,33 +100,6 @@ def solve_fund_info():
     df.to_csv('Data/crawler3.csv')
 
 
-def solve_f10_data():
-    rootDir = 'Data/f10_ts/'
-    org_data_list = data_read(rootDir)
-    data_list = {}
-    data_list['fund_id'] = []
-    data_list['近1年std'] = []
-    data_list['近2年std'] = []
-    data_list['近3年std'] = []
-    data_list['近1年夏普率'] = []
-    data_list['近2年夏普率'] = []
-    data_list['近3年夏普率'] = []
-
-    for i in range(0, len(org_data_list)):
-        a = re.findall(r'<td class=\'num\'>(.*?)</td>', org_data_list[i])
-        if len(a) > 0:
-            data_list['近1年std'].append(a[0])
-            data_list['近2年std'].append(a[1])
-            data_list['近3年std'].append(a[2])
-            data_list['近1年夏普率'].append(a[3])
-            data_list['近2年夏普率'].append(a[4])
-            data_list['近3年夏普率'].append(a[5])
-            a = re.findall(r'tsdata_(.*?).htm', org_data_list[i])
-            code = '%06d' % int(a[0])
-            data_list['fund_id'].append(code)
-    df = pd.DataFrame(data_list, index=data_list['fund_id'])
-    df.to_csv('Data/f10_ts/std and sharp ratio.csv')
-
 
 def solve_crawler3():
     df = pd.read_csv('local_data/fund_data_list.csv')
@@ -236,7 +209,7 @@ def solve_crawler3():
 
 
 def solve_manager_info():
-    # http: // fund.eastmoney.com / data / FundDataPortfolio_Interface.aspx?dt = 17 & mc = jjjl & pn = 20 & pi = 3 & jlid = 30040401 & _ = 1614183416465
+    # http://fund.eastmoney.com/data/FundDataPortfolio_Interface.aspx?dt=17&mc=jjjl&pn=20&pi=3&jlid=30040401&_=1614183416465
     rootDir = 'local_data/manager_info/'
     org_data_list = data_read(rootDir)
     name_list = []

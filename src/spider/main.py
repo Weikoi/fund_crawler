@@ -16,4 +16,4 @@ logger = get_logger(file_name="spider", logger_name="main")
 
 if __name__ == '__main__':
     # ============>>>>>>>>>每日执行：
-    FundSpider("once").process_special_data()
+    FundSpider("once").process_manager_data()
