@@ -64,11 +64,13 @@ class FundSpider(object):
         # 暂定皆为日更, 22:00
 
         while True:
+            self.time_now = datetime.datetime.now()
+            if self.time_now.second == 0:
+                print("\rSpider waiting to start...", end='')
             if self.mode == "once":
                 self.update_data()
                 self.process_data()
                 break
-            self.time_now = datetime.datetime.now()
             if self.mode == "daily" and self.time_now.hour == 20 \
                     and self.time_now.minute == 54 and self.time_now.second == 0:
                 self.update_data()
@@ -81,9 +83,9 @@ class FundSpider(object):
     def update_data(self):
         logger.info("====>>>>>开始执行爬虫 with mode < {} >...".format(self.mode))
         time_s = datetime.datetime.now()
-        # self.get_fund_list()
-        # self.get_fund_company_list()
-        # self.get_fund_info()
+        self.get_fund_list()
+        self.get_fund_company_list()
+        self.get_fund_info()
         self.get_special_info()
         self.get_manager_info()
         logger.info("====>>>>>爬虫总共执行时间为：{:.2f} min".format
@@ -93,7 +95,7 @@ class FundSpider(object):
         logger.info("====>>>>>开始处理数据 with mode < {} >...".format(self.mode))
         time_s = datetime.datetime.now()
         # self.process_fund_data()
-        # self.process_special_data()
+        self.process_special_data()
         # self.process_manager_data()
         logger.info("====>>>>>数据处理时间总共执行时间为：{:.2f} min".format
                     ((datetime.datetime.now() - time_s).total_seconds() / 60))
