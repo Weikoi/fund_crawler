@@ -283,7 +283,7 @@ class FundSpider(object):
         df.to_csv('local_data/fund_info_raw.csv', index=False)
         df_fail = pd.DataFrame(failed_list, columns=["failed_fund_code"])
         df_fail.to_csv('local_data/failed_fund_code.csv', index=False)
-        logger.info("< 基金详情信息 >爬取成功 {} 条".format(len(data["fS_code"])))
+        logger.info("< 基金详情信息 >爬取成功 {} 条".format(len(data["fund_code"])))
         logger.info("< 基金详情信息 >爬取失败 {} 条".format(len(failed_list)))
         logger.info("< 基金详情信息 >写入 CSV 成功")
         logger.info("< 基金详情信息 >失败列表写入 CSV 成功")
