@@ -94,9 +94,9 @@ class FundSpider(object):
     def process_data(self):
         logger.info("====>>>>>开始处理数据 with mode < {} >...".format(self.mode))
         time_s = datetime.datetime.now()
-        # self.process_fund_data()
+        self.process_fund_data()
         self.process_special_data()
-        # self.process_manager_data()
+        self.process_manager_data()
         logger.info("====>>>>>数据处理时间总共执行时间为：{:.2f} min".format
                     ((datetime.datetime.now() - time_s).total_seconds() / 60))
 
@@ -200,8 +200,8 @@ class FundSpider(object):
         logger.info("< 基金详情信息 >开始获取...")
         fund_code_df = pd.read_csv('local_data//fund_list.csv', dtype=str)
         code_list = fund_code_df['fund_id']
-        data = {'fS_name': [],  # 基金名  "华夏成长混合"
-                'fS_code': [],  # 基金ID  "000001"
+        data = {'fund_name': [],  # 基金名  "华夏成长混合"
+                'fund_code': [],  # 基金ID  "000001"
                 'fund_sourceRate': [],  # 原费率  "1.50"
                 'fund_Rate': [],  # 现费率  "0.15"
                 'fund_minsg': [],  # 最小申购金额  "100"
@@ -259,12 +259,12 @@ class FundSpider(object):
 
         failed_list = []
         time_s = time.time()
-        for idx, fund_code in enumerate(code_list):
-            if DEBUG and idx == 10:
+        for index, fund_code in enumerate(code_list):
+            if DEBUG and index == 10:
                 break
             if NEED_SLEEP:
                 time.sleep(SLEEP_TIME_MIN)
-            progress = idx / len(code_list) * 100
+            progress = index / len(code_list) * 100
             print('\r 爬取' + fund_code + '中，进度', '%.2f' % progress + '% ', end='')
             # progress_bar(idx, len(code_list))
             fund_info = self._get_fund_info_page(fund_code)
@@ -504,27 +504,26 @@ class FundSpider(object):
         data_dir = 'local_data/manager_data/'
         raw_data_list = os.walk(data_dir)
         name_list = []
-        manager_info_list = {'name': [], 'code': []}
+        manager_info_list = {'name': [], 'code': [], 'desc':[]}
+        data_list = {'manager_code': [],
+                     'manager_name': [],
+                     'fund_name': [],
+                     'fund_code': [],
+                     'fund_type': [],
+                     'start_date': [],
+                     'end_date': [],
+                     'duration': [],
+                     'return': [],
+                     'mean_return_category': [],
+                     'rank_category': []}
         for file_list in raw_data_list:
-            total_length = file_list[2]
+            total_length = len(file_list[2])
             for index, file in enumerate(file_list[2]):
                 print("\r < 基金经理数据 >处理进度：{}/{}".format(index, total_length), end='')
                 if os.path.splitext(file)[1] == '.json':
                     with open(data_dir + file, 'r', encoding='utf-8') as f:
                         each_data = f.read()
-                        data_list = {'姓名': [],
-                                     '上任日期': [],
-                                     '经理代号': [],
-                                     '简介': [],
-                                     '基金名称': [],
-                                     '基金代码': [],
-                                     '基金类型': [],
-                                     '起始时间': [],
-                                     '截止时间': [],
-                                     '任职天数': [],
-                                     '任职回报': [],
-                                     '同类平均': [],
-                                     '同类排名': []}
+
                         temp = re.findall(r'姓名(.*?)<div class="space10"></div>', each_data)
                         for ii in range(0, len(temp)):
                             b = temp[ii]
@@ -533,54 +532,48 @@ class FundSpider(object):
                                 name_list.append(name)
                                 duty_date = re.findall(r'上任日期：</strong>(.*?)</p>', b)[0]
                                 brief_intro = re.findall(r'</p><p>(.*?)</p><p class="tor">', b)[0].split('<p>')[-1]
-                                manager_code = re.findall(r'"http://fund.eastmoney.com/manager/(.*?).html', b)[0]
-                                data_list['姓名'].append(name)
-                                data_list['上任日期'].append(duty_date)
-                                data_list['经理代号'].append(manager_code)
-                                data_list['简介'].append(brief_intro)
+                                manager_code = re.findall(r'"//fund.eastmoney.com/manager/(.*?).html', b)[0]
                                 fund_info_list = re.findall(r'html\"(.*?)</tr>', b)[1:]
 
                                 # manager list
                                 manager_info_list['name'].append(name)
                                 manager_info_list['code'].append(manager_code)
+                                manager_info_list['desc'].append(brief_intro)
 
                                 for iii in range(0, len(fund_info_list)):
                                     fund_list = re.findall(r'>(.*?)</td>' or r'>(.*?)</a></td>', fund_info_list[iii])
                                     fund_list[0] = fund_list[0].split('<')[0]
                                     fund_list[1] = re.findall(r'>(.*?)<', fund_list[1])[0]
-                                    data_list['基金名称'].append(fund_list[1])
-                                    data_list['基金代码'].append(fund_list[0])
-                                    data_list['基金类型'].append(fund_list[2])
-                                    data_list['起始时间'].append(fund_list[3])
-                                    data_list['截止时间'].append(fund_list[4])
-                                    data_list['任职天数'].append(fund_list[5])
-                                    data_list['任职回报'].append(fund_list[6])
-                                    data_list['同类平均'].append(fund_list[7])
-                                    data_list['同类排名'].append(fund_list[8])
-                                    if iii > 0:
-                                        data_list['姓名'].append('')
-                                        data_list['上任日期'].append('')
-                                        data_list['经理代号'].append('')
-                                        data_list['简介'].append('')
-                                dir_temp = 'local_data/manager_data/' + name + '.csv'
-                                df = pd.DataFrame(data_list)
-                                order = ['姓名',
-                                         '上任日期',
-                                         '经理代号',
-                                         '简介',
-                                         '基金名称',
-                                         '基金代码',
-                                         '基金类型',
-                                         '起始时间',
-                                         '截止时间',
-                                         '任职天数',
-                                         '任职回报',
-                                         '同类平均',
-                                         '同类排名']
-                                df = df[order]
-                                df.to_csv(dir_temp)
+                                    data_list['fund_name'].append(fund_list[1])
+                                    data_list['fund_code'].append(fund_list[0])
+                                    data_list['fund_type'].append(fund_list[2])
+                                    data_list['start_date'].append(fund_list[3])
+                                    data_list['end_date'].append(fund_list[4])
+                                    data_list['duration'].append(fund_list[5])
+                                    data_list['return'].append(fund_list[6])
+                                    data_list['mean_return_category'].append(fund_list[7])
+                                    data_list['rank_category'].append(fund_list[8])
+                                    data_list['manager_name'].append(name)
+                                    data_list['manager_code'].append(manager_code)
+                                # dir_temp = 'local_data/manager_data/' + name + '.csv'
+
+                                # df.to_csv(dir_temp)
+        df = pd.DataFrame(data_list)
+        order = ['fund_code',
+                 'fund_name',
+                 'fund_type',
+                 'manager_code',
+                 'manager_name',
+                 'start_date',
+                 'end_date',
+                 'duration',
+                 'return',
+                 'mean_return_category',
+                 'rank_category']
+        df = df[order]
+        df.to_csv("local_data/fund_manager_info.csv", index=False)
         df_manager_info_list = pd.DataFrame(manager_info_list)
-        df_manager_info_list.to_csv('local_data/manager_list.csv')
+        df_manager_info_list.to_csv('local_data/manager_list.csv', index=False)
         logger.info("< 基金特色数据 >处理完成,共耗时{:.2f} min <<<<<==========".format((time.time() - time_s) / 60))
         logger.info("*******************************************************************")
 
