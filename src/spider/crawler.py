@@ -48,7 +48,7 @@ def get_response(url):
 
 class FundSpider(object):
 
-    def __init__(self, mode):
+    def __init__(self, mode="once"):
         """
         :param mode: "daily" or "once"
         """
@@ -200,8 +200,8 @@ class FundSpider(object):
         logger.info("< 基金详情信息 >开始获取...")
         fund_code_df = pd.read_csv('local_data//fund_list.csv', dtype=str)
         code_list = fund_code_df['fund_id']
-        data = {'fund_name': [],  # 基金名  "华夏成长混合"
-                'fund_code': [],  # 基金ID  "000001"
+        data = {'fs_name': [],  # 基金名  "华夏成长混合"
+                'fs_code': [],  # 基金ID  "000001"
                 'fund_sourceRate': [],  # 原费率  "1.50"
                 'fund_Rate': [],  # 现费率  "0.15"
                 'fund_minsg': [],  # 最小申购金额  "100"
@@ -211,10 +211,10 @@ class FundSpider(object):
                 'zqCodes': [],  # 基金持仓债券代码
                 'stockCodesNew': [],  # 基金持仓股票代码(新市场号)
                 'zqCodesNew': [],  # 基金持仓债券代码（新市场号）
-                'syl_1y': [],  # 近一年收益率  "42.74"
-                'syl_6m': [],  # 近6月收益率  "9.34"
-                'syl_3m': [],  # 近3月收益率  "11.56"
-                'syl_1m': [],  # 近1月收益率  "11.88"
+                'syl_1n': [],  # 近一年收益率  "42.74"
+                'syl_6y': [],  # 近6月收益率  "9.34"
+                'syl_3y': [],  # 近3月收益率  "11.56"
+                'syl_1y': [],  # 近1月收益率  "11.88"
                 'Data_fundSharesPositions': [],  # 股票仓位测算图（推测仓位）
                 # [[1610553600000,95.00],[1610640000000,95.00],[1610899200000,84.200],[1610985600000,97.0300],[1611072000000,93.6100],[1611158400000,92.00],[1611244800000,96.0600],[1611504000000,91.9700],[1611590400000,95.00],[1611676800000,96.3900],[1611763200000,95.00],[1611849600000,95.00],[1612108800000,95.00],[1612195200000,95.00],[1612281600000,95.00],[1612368000000,97.200],[1612454400000,95.00],[1612713600000,95.00],[1612800000000,95.00]]
 
@@ -406,8 +406,50 @@ class FundSpider(object):
             with open(file_name, 'w', encoding='utf-8') as f:
                 print(response, file=f)
 
-    def process_fund_data(self):
-        pass
+    @staticmethod
+    def process_fund_data():
+        """
+        处理基金详情数据
+        :return:
+        """
+        logger.info("*******************************************************************")
+        logger.info("< 基金详情数据 >开始处理...")
+        time_s = time.time()
+        raw_data_path = 'local_data/'
+        data_raw_df = pd.read_csv(raw_data_path + 'fund_info_raw.csv')
+        fund_basic_info = {
+            "fund_code": [],
+            "fund_name": [],
+        }
+        fund_net_val = {
+            "fund_code": [],
+            "date": [],
+            "net_val": [],
+            "equityReturn": [],
+            "unitMoney": []
+        }
+        total_length = len(data_raw_df)
+
+        for idx, row in data_raw_df.iterrows():
+            print("\r < 基金详情数据 >处理进度：{}/{}".format(idx, total_length), end='')
+            if DEBUG and idx == 2:
+                break
+            # 处理单位净值数据
+            # print(idx, row)
+            try:
+                if row["Data_netWorthTrend"]:
+                    for each_date in eval(row["Data_netWorthTrend"]):
+                        # list of dict -> [{x:时间戳  y:单位净值  equityReturn:净值回报 unitMoney:每份派送金}]
+                        fund_net_val["fund_code"].append(row["fund_code"])
+                        fund_net_val["date"].append(datetime.datetime.fromtimestamp(each_date["x"] / 1000))
+                        fund_net_val["net_val"].append(each_date["y"])
+                        fund_net_val["equityReturn"].append(each_date["equityReturn"])
+                        fund_net_val["unitMoney"].append(each_date["unitMoney"])
+            except:
+                print(row["Data_netWorthTrend"])
+        pd.DataFrame(fund_net_val).to_csv(raw_data_path + "fund_net_val.csv", index=False)
+        logger.info("< 基金详情数据 >处理完成,共耗时{:.2f} min <<<<<==========".format((time.time() - time_s) / 60))
+        logger.info("*******************************************************************")
 
     @staticmethod
     def process_special_data():
@@ -504,7 +546,7 @@ class FundSpider(object):
         data_dir = 'local_data/manager_data/'
         raw_data_list = os.walk(data_dir)
         name_list = []
-        manager_info_list = {'name': [], 'code': [], 'desc':[]}
+        manager_info_list = {'name': [], 'code': [], 'desc': []}
         data_list = {'manager_code': [],
                      'manager_name': [],
                      'fund_name': [],
@@ -588,8 +630,4 @@ class FundSpider(object):
 
 
 if __name__ == '__main__':
-    for idx, data in enumerate(os.walk("./local_data/special_data/")):
-        print(idx)
-        print(data[0])
-        print(data[1])
-        print(data[2])
+    FundSpider("once").process_fund_data()
