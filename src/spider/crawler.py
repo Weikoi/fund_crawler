@@ -440,7 +440,7 @@ class FundSpider(object):
                 if row["Data_netWorthTrend"]:
                     for each_date in eval(row["Data_netWorthTrend"]):
                         # list of dict -> [{x:时间戳  y:单位净值  equityReturn:净值回报 unitMoney:每份派送金}]
-                        fund_net_val["fund_code"].append(row["fund_code"])
+                        fund_net_val["fund_code"].append(row["fs_code"])
                         fund_net_val["date"].append(datetime.datetime.fromtimestamp(each_date["x"] / 1000))
                         fund_net_val["net_val"].append(each_date["y"])
                         fund_net_val["equityReturn"].append(each_date["equityReturn"])
