@@ -12,8 +12,6 @@ import requests
 import pandas as pd
 import re
 import os
-import sys
-import math
 import datetime
 import time
 from lxml import etree
@@ -22,7 +20,6 @@ from src.spider.spider_exception import *
 from src.config.global_config import *
 from src.data.db_pool import DBPool
 from src.config.db_config import DBConfig
-from src.utils.tools import *
 
 if not os.path.exists("./local_data"):
     os.makedirs("./local_data")

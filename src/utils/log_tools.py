@@ -8,6 +8,7 @@
 
 __all__ = ["LogFactory", "get_logger"]
 
+from src.utils.log_color import *
 import logging
 import logging.config
 import logging.handlers
@@ -15,6 +16,9 @@ import logging.handlers
 from datetime import datetime
 import os
 import six
+import sys
+
+sys.stderr = sys.stdout
 
 
 class _InfoFilter(logging.Filter):

@@ -11,26 +11,19 @@ from sqlalchemy.exc import DisconnectionError, DatabaseError, InterfaceError, Op
 from pandas.io.sql import DatabaseError as PandasDatabaseError
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../../'))
-curPath = os.path.abspath(os.path.dirname(__file__))
-rootPath = os.path.split(curPath)[0]
-sys.path.append(rootPath)
-root_root_Path = os.path.split(rootPath)[0]
-sys.path.append(root_root_Path)
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../../'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
+
 import datetime
 from sqlalchemy import create_engine
 from src.utils.log_tools import get_logger
-from src.utils.wrappers import time_log_info
+from src.utils import time_log_info
 from retrying import retry
 import pandas as pd
 from src.config.db_config import DBConfig
 
-# todo retry装饰器的添加，数据库重连 done
-# todo 数据库连接池失效应对方案确定：1.自带悲观机制 2.自带乐观机制 3.自己实现（可以通过retry DisconnectionError, 需要指定Exception） done
-# todo 数据库配置多数据源、PROD与DEV通过传入的系统参数实现自动区分 done
-# todo 完善数据库事务的逻辑，如何实现多条SQL一个事务, 单条非查询SQL执行需要放在事务中执行吗？ done
-# todo 批量SQL执行 done
-# todo 大批量写入数据自动分批 done
-# todo 读取和插入Dataframe实现 done
+
 logger = get_logger(file_name="DB_Connect", logger_name="")
 retry_kwargs_db = {
     'stop_max_attempt_number': 3,
@@ -396,10 +389,9 @@ class DBPool(object):
 
 # 测试
 if __name__ == '__main__':
-
-#
-# # 写表
-# # test for insert_by_sql
+    #
+    # # 写表
+    # # test for insert_by_sql
     print(DBPool(DBConfig.mysql_url).
           insert_by_sql("insert into fund_company_info(company_id, company_name) values(20000, 'A')"))
 #
